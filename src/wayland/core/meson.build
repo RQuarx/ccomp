@@ -1,0 +1,1 @@
+ccomp_wayland_core_src = files('display.cc')
