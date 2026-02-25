@@ -25,4 +25,5 @@ xdg_proto = wl_mod.scan_xml(xml,
 subdir('src')
 executable('ccomp', ccomp_src + xdg_proto,
            include_directories: include_directories('include'),
-           dependencies:        deps)
+           dependencies:        deps,
+           cpp_args: [ '-DWL_HIDE_DEPRECATED' ])

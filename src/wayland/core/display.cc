@@ -176,3 +176,10 @@ display::get_event_loop() noexcept -> event_loop_ref
 {
     return wl_display_get_event_loop(m_display);
 }
+
+
+auto
+display::raw() noexcept -> wl_display *
+{
+    return m_display;
+}
