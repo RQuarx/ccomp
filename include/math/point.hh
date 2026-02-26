@@ -8,8 +8,11 @@ namespace ccomp::math
 {
     struct point
     {
-        std::int32_t x;
-        std::int32_t y;
+        std::int32_t x {};
+        std::int32_t y {};
+
+
+        point() = default;
 
 
         template <typename T1, typename T2>
@@ -49,6 +52,34 @@ namespace ccomp::math
             x -= other.x;
             y -= other.y;
             return *this;
+        }
+
+
+        constexpr auto
+        operator==(point other) const noexcept -> bool
+        {
+            return std::tie(x, y) == std::tie(other.x, other.y);
+        }
+
+
+        constexpr auto
+        operator!=(point other) const noexcept -> bool
+        {
+            return !(*this == other);
+        }
+
+
+        constexpr auto
+        operator==(int all) const noexcept -> bool
+        {
+            return x == all && y == all;
+        }
+
+
+        constexpr auto
+        operator!=(int all) const noexcept -> bool
+        {
+            return !(*this == all);
         }
     };
 

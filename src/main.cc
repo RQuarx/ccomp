@@ -2,6 +2,7 @@
 
 #include "logger.hh"
 #include "wayland/core/display.hh"
+#include "wayland/protocol/compositor.hh"
 
 
 namespace
@@ -30,6 +31,8 @@ main(int argc, char **argv) noexcept -> int
 
     auto sock_name { display->add_socket(nullptr) };
     if (!sock_name) return 1;
+
+    display->create_global<ccomp::wl::protocol::compositor>();
 
     display->run();
 }

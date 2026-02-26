@@ -7,6 +7,61 @@ using ccomp::wl::protocol::compositor;
 #define DOMAIN "ccomp::wl::protocol::compositor"
 
 
+namespace ccomp::wl::protocol
+{
+    template <core::impl_type T>
+    static void
+    create_instance(wl_client    *client,
+                    wl_resource  *resource,
+                    std::uint32_t id) noexcept
+    {
+        auto *self { util::get_user_data<compositor>(resource) };
+        auto *res { wl_resource_create(client, T::interface,
+                                       wl_resource_get_version(resource), id) };
+
+        if (res == nullptr)
+        {
+            logger[log_level::error, "ccomp::wl::protocol::compositor"](
+                "failed to create a wl_resource (low on memory?)");
+            wl_client_post_no_memory(client);
+            return;
+        }
+
+
+        T *data;
+
+        if constexpr (std::is_same_v<T, surface>)
+        {
+            data = self->get_surfaces()
+                       .emplace_back(std::move(std::make_unique<surface>(res)))
+                       .get();
+        }
+        else
+        {
+            data = self->get_regions()
+                       .emplace_back(std::move(std::make_unique<region>(res)))
+                       .get();
+        }
+
+        if (data == nullptr)
+        {
+            logger[log_level::error, "ccomp::wl::protocol::compositor"](
+                "failed to create a surface (low on memory?)");
+            wl_client_post_no_memory(client);
+            return;
+        }
+
+        wl_resource_set_implementation(res, T::get_impl(), data, nullptr);
+    }
+
+
+    static constexpr struct wl_compositor_interface impl {
+        .create_surface = create_instance<surface>,
+        .create_region  = create_instance<region>,
+    };
+}
+
+
 void
 compositor::bind(wl_client    *client,
                  void         *data,
@@ -28,71 +83,15 @@ compositor::bind(wl_client    *client,
 }
 
 
-void
-compositor::create_surface(wl_client    *client,
-                           wl_resource  *resource,
-                           std::uint32_t id) noexcept
+auto
+compositor::get_surfaces() noexcept -> std::vector<std::unique_ptr<surface>> &
 {
-    auto *self { util::get_user_data<compositor>(resource) };
-
-    auto *surface_resource { wl_resource_create(
-        client, _impl::surface::interface, wl_resource_get_version(resource),
-        id) };
-
-    if (surface_resource == nullptr)
-    {
-        logger[log_level::error, DOMAIN](
-            "failed to create a wl_resource (low on memory?)");
-        wl_client_post_no_memory(client);
-        return;
-    }
-
-    auto *data {
-        new (std::nothrow) _impl::surface { self, surface_resource }
-    };
-
-    if (data == nullptr)
-    {
-        logger[log_level::error, DOMAIN](
-            "failed to create a surface (low on memory?)");
-        wl_client_post_no_memory(client);
-        return;
-    }
-
-    wl_resource_set_implementation(surface_resource, &_impl::surface::impl,
-                                   data, _impl::surface::on_destroy);
+    return m_surfaces;
 }
 
 
-void
-compositor::create_region(wl_client    *client,
-                          wl_resource  *resource,
-                          std::uint32_t id) noexcept
+auto
+compositor::get_regions() noexcept -> std::vector<std::unique_ptr<region>> &
 {
-    auto *self { util::get_user_data<compositor>(resource) };
-
-    auto *region_resource { wl_resource_create(
-        client, _impl::region::interface, wl_resource_get_version(resource),
-        id) };
-
-    if (region_resource == nullptr)
-    {
-        logger[log_level::error, DOMAIN](
-            "failed to create a wl_resource (low on memory?)");
-        wl_client_post_no_memory(client);
-        return;
-    }
-
-    auto *data { new (std::nothrow) _impl::region::data_type };
-
-    if (data == nullptr)
-    {
-        logger[log_level::error, DOMAIN](
-            "failed to create a region (low on memory?)");
-        wl_client_post_no_memory(client);
-        return;
-    }
-
-    wl_resource_set_implementation(region_resource, &_impl::region::impl, data,
-                                   _impl::region::on_destroy);
+    return m_regions;
 }

@@ -1,1 +1,1 @@
-ccomp_wayland_core_src = files('display.cc')
+ccomp_wayland_core_src = files('display.cc', 'event_loop.cc', 'global.cc')

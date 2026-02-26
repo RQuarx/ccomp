@@ -13,25 +13,42 @@ namespace ccomp::wl::core
     };
 
 
+    class impl_base
+    {
+    public:
+        virtual ~impl_base() = default;
+    };
+
+
     using interface_type = const struct wl_interface *const;
+
+
+    template <typename T, typename... U>
+    concept either = (std::same_as<T, U> || ...);
 
 
     template <typename T>
     concept global_type = std::derived_from<T, global_base> && requires {
-        { T::interface } -> std::same_as<interface_type>;
-        { T::version } -> std::same_as<int>;
-        { T::bind } -> std::same_as<wl_global_bind_func_t>;
+        { T::interface } -> either<interface_type, interface_type &>;
+        { T::version } -> either<const int, const int &>;
+        { T::bind } -> std::convertible_to<wl_global_bind_func_t>;
+    };
+
+
+    template <typename T>
+    concept impl_type = std::derived_from<T, impl_base> && requires {
+        { T::get_impl() } -> std::convertible_to<const typename T::impl_type *>;
+        { T::interface } -> either<interface_type, interface_type &>;
     };
 
 
     class global
     {
     public:
-        template <global_type T_Global, class T_Display, typename... T_Args>
-        global(T_Display &display, T_Args &&...args) noexcept
-            : m_instance { std::make_unique<T_Global>(
-                  std::forward<T_Args>(args)...) },
-              m_display { display },
+        template <class T_Display, global_type T_Global>
+        global(T_Display                  &display,
+               std::unique_ptr<T_Global> &&instance) noexcept
+            : m_instance { std::move(instance) }, m_display { display },
               m_global { wl_global_create(display.raw(),
                                           T_Global::interface,
                                           T_Global::version,

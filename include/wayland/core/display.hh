@@ -45,8 +45,8 @@ namespace ccomp::wl::core
             auto obj { std::make_unique<T_Global>(
                 std::forward<T_ConstructArgs>(args)...) };
 
-            m_global[typeid(T_Global)]
-                = std::make_unique<global>(*this, std::move(obj));
+            m_global.emplace(typeid(T_Global), new (std::nothrow) global {
+                                                   *this, std::move(obj) });
         }
 
     private:

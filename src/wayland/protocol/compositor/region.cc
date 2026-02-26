@@ -1,69 +1,67 @@
-#include "logger.hh"
 #include "wayland/protocol/compositor.hh"
 #include "wayland/util.hh"
 
-using ccomp::wl::protocol::_impl::region;
+using ccomp::wl::protocol::region;
 
 #define DOMAIN "ccomp::wl::protocol::compositor"
 
 
-void
-region::on_destroy(wl_resource *resource) noexcept
+namespace ccomp::wl::protocol
 {
-    auto *self { util::get_user_data<data_type>(resource) };
-    delete self;
-}
-
-
-void
-region::destroy(wl_client * /* client */, wl_resource *resource) noexcept
-{
-    wl_resource_destroy(resource);
-}
-
-
-void
-region::add(wl_client * /* client */,
-            wl_resource *resource,
-            std::int32_t x,
-            std::int32_t y,
-            std::int32_t width,
-            std::int32_t height) noexcept
-{
-    auto *self { util::get_user_data<data_type>(resource) };
-    self->emplace_back(x, y, width, height);
-}
-
-
-void
-region::subtract(wl_client   *client,
-                 wl_resource *resource,
-                 std::int32_t x,
-                 std::int32_t y,
-                 std::int32_t width,
-                 std::int32_t height) noexcept
-{
-    auto *self { util::get_user_data<data_type>(resource) };
-    auto  it {
-        std::ranges::find_if(
-            *self,
-            [a { math::rect { .x = x, .y = y, .w = width, .h = height } }
-             ](
-                const math::rect &b) -> bool
-            { return (a.x == b.x && a.y == b.y && a.w == b.w && a.h == b.h);                                                      }
-             )
-    };
-
-    if (it != self->end())
+    static void
+    add(wl_client   *client,
+        wl_resource *res,
+        std::int32_t x,
+        std::int32_t y,
+        std::int32_t w,
+        std::int32_t h) noexcept
     {
-        self->erase(it);
-        return;
+        util::get_user_data<region>(res)->add(client, { x, y, w, h });
     }
 
-    util::credential creds;
-    wl_client_get_credentials(client, GET_CREDENTIAL(creds));
 
-    logger[log_level::warn, DOMAIN](
-        "client[{}-{}-{}] attempted to subtract a non-existent rectangle",
-        creds.pid, creds.uid, creds.gid);
+    static void
+    subtract(wl_client   *client,
+             wl_resource *res,
+             std::int32_t x,
+             std::int32_t y,
+             std::int32_t w,
+             std::int32_t h) noexcept
+    {
+        util::get_user_data<region>(res)->remove(client, { x, y, w, h });
+    }
+
+
+    static constexpr region::impl_type impl {
+        .destroy  = util::destroy_client_resource,
+        .add      = add,
+        .subtract = subtract,
+    };
+}
+
+
+region::region(wl_resource *resource) noexcept
+    : m_resource { resource }, m_region { Cairo::Region::create() }
+{
+}
+
+
+void
+region::add(wl_client * /* client */, Cairo::RectangleInt rect) noexcept
+{
+    m_region->do_union(rect);
+}
+
+
+void
+region::remove(wl_client * /* client */, Cairo::RectangleInt rect) noexcept
+{
+    m_region->subtract(rect);
+}
+
+
+auto
+region::get_impl() noexcept -> const region::impl_type *
+{
+    return &impl;
 }
