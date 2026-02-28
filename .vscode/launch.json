@@ -16,6 +16,10 @@
                 {
                     "name": "CCOMP_LOG_THRESHOLD",
                     "value": "trace"
+                },
+                {
+                    "name": "WAYLAND_DISPLAY",
+                    "value": "wayland-0"
                 }
             ],
             "externalConsole": false,

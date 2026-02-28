@@ -9,7 +9,9 @@ project('ccomp', 'cpp', 'c',
 deps = [ dependency('wayland-protocols'),
          dependency('wayland-server'),
          dependency('cairomm-1.16'),
-         dependency('entt', fallback: [ 'entt', 'entt_dep' ]) ]
+         dependency('gl'),
+         dependency('entt', fallback: [ 'entt', 'entt_dep' ]),
+         dependency('logger', fallback: [ 'logger', 'logger_dep' ]) ]
 
 wl_mod = import('wayland')
 

@@ -28,7 +28,7 @@ namespace ccomp::wl::protocol
              std::int32_t w,
              std::int32_t h) noexcept
     {
-        util::get_user_data<region>(res)->remove(client, { x, y, w, h });
+        util::get_user_data<region>(res)->subtract(client, { x, y, w, h });
     }
 
 
@@ -40,23 +40,20 @@ namespace ccomp::wl::protocol
 }
 
 
-region::region(wl_resource *resource) noexcept
-    : m_resource { resource }, m_region { Cairo::Region::create() }
+region::region(wl_resource *resource) noexcept : m_resource { resource } {}
+
+
+void
+region::add(wl_client * /* client */, gfx::rect rect) noexcept
 {
+    m_region.add(rect);
 }
 
 
 void
-region::add(wl_client * /* client */, Cairo::RectangleInt rect) noexcept
+region::subtract(wl_client * /* client */, gfx::rect rect) noexcept
 {
-    m_region->do_union(rect);
-}
-
-
-void
-region::remove(wl_client * /* client */, Cairo::RectangleInt rect) noexcept
-{
-    m_region->subtract(rect);
+    m_region.subtract(rect);
 }
 
 

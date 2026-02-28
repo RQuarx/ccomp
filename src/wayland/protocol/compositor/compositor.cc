@@ -28,6 +28,9 @@ namespace ccomp::wl::protocol
         }
 
 
+        std::erase(self->get_surfaces(), nullptr);
+        std::erase(self->get_regions(), nullptr);
+
         T *data;
 
         if constexpr (std::is_same_v<T, surface>)
@@ -46,7 +49,7 @@ namespace ccomp::wl::protocol
         if (data == nullptr)
         {
             logger[log_level::error, "ccomp::wl::protocol::compositor"](
-                "failed to create a surface (low on memory?)");
+                "failed to create a compositor data (low on memory?)");
             wl_client_post_no_memory(client);
             return;
         }
@@ -70,6 +73,8 @@ compositor::bind(wl_client    *client,
 {
     auto *self { util::get_user_data<compositor>(data) };
     auto *resource { wl_resource_create(client, interface, version, id) };
+
+    logger[log_level::trace, DOMAIN]("binding ccomp::wl::protocol::compositor");
 
     if (resource == nullptr)
     {

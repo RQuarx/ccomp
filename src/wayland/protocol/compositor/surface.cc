@@ -52,12 +52,8 @@ namespace ccomp::wl::protocol
 }
 
 
-surface::state::state(wl_buffer *buff) noexcept : buffer { buff } {}
-
-
 surface::surface(wl_resource *resource) noexcept
-    : m_start_time { std::chrono::steady_clock::now() },
-      m_resource { resource }, m_current { nullptr }
+    : m_start_time { std::chrono::steady_clock::now() }, m_resource { resource }
 {
 }
 
@@ -75,7 +71,7 @@ surface::get_impl() noexcept -> const impl_type *
 void
 surface::attach_buffer(wl_client   *client,
                        wl_resource *buffer,
-                       math::point  pos) noexcept
+                       gfx::point   pos) noexcept
 {
     if (pos != 0)
     {
@@ -96,9 +92,9 @@ surface::attach_buffer(wl_client   *client,
 
 
 void
-surface::add_redraw_rect(wl_client          *client,
-                         Cairo::RectangleInt rect,
-                         bool                relative_to_buffer) noexcept
+surface::add_redraw_rect(wl_client *client,
+                         gfx::rect  rect,
+                         bool       relative_to_buffer) noexcept
 {
     if (!relative_to_buffer)
         logger[log_level::warn, DOMAIN](
@@ -106,7 +102,7 @@ surface::add_redraw_rect(wl_client          *client,
             "recommended wl_surface::damage_buffer",
             util::get_client_tag(client));
 
-    mf_get_pending().redraw_region->do_union(rect);
+    mf_get_pending().damage_region.add(rect);
 }
 
 

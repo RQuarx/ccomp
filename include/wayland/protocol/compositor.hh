@@ -2,33 +2,53 @@
 #include <chrono>
 #include <vector>
 
-#include <cairomm/region.h>
-#include <cairomm/surface.h>
 #include <wayland-server-protocol.h>
 
-#include "math/point.hh"
-#include "math/size.hh"
+#include "graphic/geometry.hh"
+#include "graphic/region.hh"
 #include "wayland/core/global.hh"
 
 
 namespace ccomp::wl::protocol
 {
-    class compositor;
+    class region final : public core::impl_base
+    {
+    public:
+        using impl_type = struct wl_region_interface;
+        static constexpr core::interface_type interface {
+            &::wl_region_interface
+        };
+
+
+        [[nodiscard]]
+        static auto get_impl() noexcept -> const impl_type *;
+
+
+        region(wl_resource *resource) noexcept;
+        ~region() override = default;
+
+
+        void add(wl_client *client, gfx::rect rect) noexcept;
+
+
+        void subtract(wl_client *client, gfx::rect rect) noexcept;
+
+    private:
+        wl_resource *m_resource;
+        gfx::region  m_region;
+    };
 
 
     class surface final : public core::impl_base
     {
         struct state
         {
-            wl_buffer                   *buffer { nullptr };
-            math::point                  offset;
-            Cairo::RefPtr<Cairo::Region> redraw_region;
-            math::size                   buffer_size;
-            std::int32_t                 buffer_scale { 1 };
+            wl_buffer   *buffer { nullptr };
+            gfx::point   offset;
+            gfx::region  damage_region;
+            gfx::size    buffer_size;
+            std::int32_t buffer_scale { 1 };
             std::int32_t buffer_transform { WL_OUTPUT_TRANSFORM_NORMAL };
-
-
-            state(wl_buffer *buff) noexcept;
         };
 
     public:
@@ -48,12 +68,12 @@ namespace ccomp::wl::protocol
 
         void attach_buffer(wl_client   *client,
                            wl_resource *buffer,
-                           math::point  pos) noexcept;
+                           gfx::point   pos) noexcept;
 
 
-        void add_redraw_rect(wl_client          *client,
-                             Cairo::RectangleInt rect,
-                             bool                relative_to_buffer) noexcept;
+        void add_redraw_rect(wl_client *client,
+                             gfx::rect  rect,
+                             bool       relative_to_buffer) noexcept;
 
 
         void add_frame_callback(wl_client *client, std::uint32_t id) noexcept;
@@ -62,45 +82,14 @@ namespace ccomp::wl::protocol
         std::chrono::steady_clock::time_point m_start_time;
         wl_resource                          *m_resource;
 
-        Cairo::RefPtr<Cairo::ImageSurface> m_image;
-
         state                m_current;
         std::optional<state> m_pending;
-        math::size           m_surface_size {};
 
         std::vector<wl_resource *> m_frame_callbacks;
 
 
         [[nodiscard]] auto mf_get_pending() noexcept -> state &;
         [[nodiscard]] auto mf_elapsed_ms() const noexcept -> std::int32_t;
-    };
-
-
-    class region final : public core::impl_base
-    {
-    public:
-        using impl_type = struct wl_region_interface;
-        static constexpr core::interface_type interface {
-            &::wl_region_interface
-        };
-
-
-        [[nodiscard]]
-        static auto get_impl() noexcept -> const impl_type *;
-
-
-        region(wl_resource *resource) noexcept;
-        ~region() override = default;
-
-
-        void add(wl_client *client, Cairo::RectangleInt rect) noexcept;
-
-
-        void remove(wl_client *client, Cairo::RectangleInt rect) noexcept;
-
-    private:
-        wl_resource                 *m_resource;
-        Cairo::RefPtr<Cairo::Region> m_region;
     };
 
 
@@ -122,6 +111,8 @@ namespace ccomp::wl::protocol
 
         [[nodiscard]]
         auto get_surfaces() noexcept -> std::vector<std::unique_ptr<surface>> &;
+
+
         [[nodiscard]]
         auto get_regions() noexcept -> std::vector<std::unique_ptr<region>> &;
 

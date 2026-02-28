@@ -6,15 +6,11 @@
 
 
 using ccomp::log_level;
-using ccomp::_impl::logger;
-using ccomp::_impl::log_entry;
+using ccomp::logger;
 
 
 namespace
 {
-    template <typename T> using tpair = std::pair<T, T>;
-
-
     [[nodiscard]]
     auto
     get_time(const std::chrono::time_point<std::chrono::system_clock> &now)
@@ -65,30 +61,11 @@ namespace
                            "\033[1m{}\033[0m",
                            time, label, domain, message);
     }
-
-
-    [[nodiscard]]
-    auto
-    get_log_threshold() noexcept -> log_level
-    {
-        const char *val { std::getenv("CCOMP_LOG_THRESHOLD") };
-
-        if (val == nullptr) return log_level::warn;
-
-        std::string_view level { val };
-        if (level == "trace") return log_level::trace;
-        if (level == "debug") return log_level::debug;
-        if (level == "info") return log_level::info;
-        if (level == "warn") return log_level::warn;
-        if (level == "error") return log_level::error;
-        if (level == "fatal") return log_level::fatal;
-        return log_level::warn;
-    }
 }
 
 
-logger::logger() noexcept
-    : m_threshold { get_log_threshold() },
+logger::logger(log_level threshold_level) noexcept
+    : m_threshold { threshold_level },
       m_worker { [this](std::stop_token st)
                  { mf_process_queue(std::move(st)); } }
 {
@@ -156,10 +133,10 @@ logger::mf_push_log(log_object &&object)
 }
 
 
-log_entry::log_entry(logger              *parent,
-                     log_level            level,
-                     std::string_view     domain,
-                     std::source_location source)
+logger::log_entry::log_entry(logger              *parent,
+                             log_level            level,
+                             std::string_view     domain,
+                             std::source_location source)
     : m_parent { parent }, m_obj { .time    = std::chrono::system_clock::now(),
                                    .level   = level,
                                    .domain  = domain,

@@ -5,6 +5,31 @@
 #include "wayland/protocol/compositor.hh"
 
 
+namespace ccomp
+{
+    [[nodiscard]]
+    static auto
+    get_log_threshold() noexcept -> ccomp::log_level
+    {
+        const char *val { std::getenv("CCOMP_LOG_THRESHOLD") };
+
+        if (val == nullptr) return ccomp::log_level::warn;
+
+        std::string_view level { val };
+        if (level == "trace") return ccomp::log_level::trace;
+        if (level == "debug") return ccomp::log_level::debug;
+        if (level == "info") return ccomp::log_level::info;
+        if (level == "warn") return ccomp::log_level::warn;
+        if (level == "error") return ccomp::log_level::error;
+        if (level == "fatal") return ccomp::log_level::fatal;
+        return ccomp::log_level::warn;
+    }
+
+
+    class logger logger { get_log_threshold() };
+}
+
+
 namespace
 {
     void

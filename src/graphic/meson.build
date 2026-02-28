@@ -1,0 +1,1 @@
+ccomp_graphic_src = files('region.cc')
