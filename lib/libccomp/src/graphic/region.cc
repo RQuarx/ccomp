@@ -26,7 +26,7 @@ region::add(gfx::rect rect) noexcept
     }
 
     m_rects.insert(m_rects.end(), new_rects.begin(), new_rects.end());
-    merge_all();
+    mf_merge_all();
 }
 
 
@@ -45,12 +45,28 @@ region::subtract(gfx::rect rect) noexcept
     }
 
     m_rects = std::move(new_rects);
-    merge_all();
+    mf_merge_all();
 }
 
 
 void
-region::merge_all() noexcept
+region::clear() noexcept
+{
+    m_rects.clear();
+}
+
+
+auto
+region::is(gfx::rect rect) noexcept -> bool
+{
+    mf_merge_all();
+
+    return m_rects.size() == 1 && m_rects.front() == rect;
+}
+
+
+void
+region::mf_merge_all() noexcept
 {
     for (std::size_t i { 0 }; i < m_rects.size(); i++)
         for (std::size_t j { i + 1 }; j < m_rects.size();)

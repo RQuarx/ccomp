@@ -17,6 +17,7 @@ namespace ccomp::gfx
 
 
         constexpr point() noexcept = default;
+        constexpr point(std::int32_t all) noexcept : x { all }, y { all } {}
         constexpr point(std::int32_t x, std::int32_t y) noexcept
             : x { x }, y { y }
         {
@@ -139,6 +140,7 @@ namespace ccomp::gfx
 
 
         constexpr size() noexcept = default;
+        constexpr size(std::int32_t all) noexcept : w { all }, h { all } {}
         constexpr size(std::int32_t w, std::int32_t h) noexcept
             : w { w }, h { h }
         {
@@ -231,7 +233,6 @@ namespace ccomp::gfx
 
 
         constexpr rect() noexcept = default;
-
         constexpr rect(std::int32_t x,
                        std::int32_t y,
                        std::int32_t w,
@@ -406,6 +407,23 @@ namespace ccomp::gfx
             x2 -= delta.x;
             y2 -= delta.y;
             return *this;
+        }
+
+
+        [[nodiscard]]
+        constexpr auto
+        operator==(gfx::rect other) const noexcept -> bool
+        {
+            return x1 == other.x1 && x2 == other.x2 && y1 == other.y1
+                && y2 == other.y2;
+        }
+
+
+        [[nodiscard]]
+        constexpr auto
+        operator!=(gfx::rect other) const noexcept -> bool
+        {
+            return !(*this == other);
         }
     };
 }

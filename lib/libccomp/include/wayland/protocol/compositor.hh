@@ -45,14 +45,14 @@ namespace ccomp::wl::protocol
         {
             wl_buffer *buffer { nullptr };
 
-            gfx::region damage_region;
+            gfx::region surface_damage;
+            gfx::region buffer_damage;
             gfx::region opaque_region;
             gfx::region input_region;
 
-            gfx::size    buffer_size;
+            int          buffer_transform { WL_OUTPUT_TRANSFORM_NORMAL };
             std::int32_t buffer_scale { 1 };
-            std::int32_t buffer_transform { WL_OUTPUT_TRANSFORM_NORMAL };
-            gfx::point   offset;
+            gfx::point   offset { 0 };
         };
 
     public:
@@ -67,22 +67,22 @@ namespace ccomp::wl::protocol
 
 
         surface(wl_resource *resource) noexcept;
-        ~surface() override;
+        ~surface() override = default;
 
 
         void attach_buffer(wl_client   *client,
                            wl_resource *buffer,
-                           gfx::point   pos) noexcept;
+                           gfx::point   offset) noexcept;
 
 
-        void add_redraw_rect(wl_client *client,
-                             gfx::rect  rect,
-                             bool       relative_to_buffer) noexcept;
-
-
+        void add_surface_damage(wl_client *client, gfx::rect rect) noexcept;
+        void add_buffer_damage(wl_client *client, gfx::rect rect) noexcept;
         void add_frame_callback(wl_client *client, std::uint32_t id) noexcept;
         void set_opaque_region(wl_client *client, region *region) noexcept;
         void set_input_region(wl_client *client, region *region) noexcept;
+        void set_buffer_transform(wl_client *client, int transform) noexcept;
+        void set_buffer_scale(wl_client *client, std::int32_t scale) noexcept;
+        void set_offset(wl_client *client, gfx::point offset) noexcept;
         void commit(wl_client *client) noexcept;
 
     private:

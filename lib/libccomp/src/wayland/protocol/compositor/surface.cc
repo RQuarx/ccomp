@@ -31,8 +31,8 @@ namespace ccomp::wl::protocol
            std::int32_t w,
            std::int32_t h) noexcept
     {
-        util::get_user_data<surface>(res)->add_redraw_rect(
-            client, { x, y, w, h }, false);
+        util::get_user_data<surface>(res)->add_surface_damage(client,
+                                                              { x, y, w, h });
     }
 
 
@@ -70,6 +70,48 @@ namespace ccomp::wl::protocol
     }
 
 
+    static void
+    set_buffer_transform(wl_client   *client,
+                         wl_resource *res,
+                         int          transform) noexcept
+    {
+        util::get_user_data<surface>(res)->set_buffer_transform(client,
+                                                                transform);
+    }
+
+
+    static void
+    set_buffer_scale(wl_client   *client,
+                     wl_resource *res,
+                     std::int32_t scale) noexcept
+    {
+        util::get_user_data<surface>(res)->set_buffer_scale(client, scale);
+    }
+
+
+    static void
+    damage_buffer(wl_client   *client,
+                  wl_resource *res,
+                  std::int32_t x,
+                  std::int32_t y,
+                  std::int32_t w,
+                  std::int32_t h) noexcept
+    {
+        util::get_user_data<surface>(res)->add_buffer_damage(client,
+                                                             { x, y, w, h });
+    }
+
+
+    static void
+    offset(wl_client   *client,
+           wl_resource *res,
+           std::int32_t x,
+           std::int32_t y) noexcept
+    {
+        util::get_user_data<surface>(res)->set_offset(client, { x, y });
+    }
+
+
     static constexpr surface::impl_type impl {
         .destroy              = util::destroy_client_resource,
         .attach               = attach,
@@ -78,10 +120,10 @@ namespace ccomp::wl::protocol
         .set_opaque_region    = set_opaque_region,
         .set_input_region     = set_input_region,
         .commit               = commit,
-        .set_buffer_transform = nullptr,
-        .set_buffer_scale     = nullptr,
-        .damage_buffer        = nullptr,
-        .offset               = nullptr,
+        .set_buffer_transform = set_buffer_transform,
+        .set_buffer_scale     = set_buffer_scale,
+        .damage_buffer        = damage_buffer,
+        .offset               = offset,
     };
 }
 
@@ -90,9 +132,6 @@ surface::surface(wl_resource *resource) noexcept
     : m_start_time { std::chrono::steady_clock::now() }, m_resource { resource }
 {
 }
-
-
-surface::~surface() {}
 
 
 auto
@@ -105,18 +144,18 @@ surface::get_impl() noexcept -> const impl_type *
 void
 surface::attach_buffer(wl_client   *client,
                        wl_resource *buffer,
-                       gfx::point   pos) noexcept
+                       gfx::point   offset) noexcept
 {
-    if (pos != 0)
+    if (offset != 0)
     {
         std::string client_tag { util::get_client_tag(client) };
 
         logger[log_level::fatal, DOMAIN](
-            "{} tried to attach a buffer with a non-zero x and y", client_tag);
+            "{} tried to attach a buffer with a non-zero offset", client_tag);
 
         wl_resource_post_error(
             m_resource, WL_SURFACE_ERROR_INVALID_OFFSET,
-            "%s tried to attach a buffer with a non-zero x and y",
+            "%s tried to attach a buffer with a non-zero offset",
             client_tag.c_str());
         return;
     }
@@ -126,17 +165,21 @@ surface::attach_buffer(wl_client   *client,
 
 
 void
-surface::add_redraw_rect(wl_client *client,
-                         gfx::rect  rect,
-                         bool       relative_to_buffer) noexcept
+surface::add_surface_damage(wl_client *client, gfx::rect rect) noexcept
 {
-    if (!relative_to_buffer)
-        logger[log_level::warn, DOMAIN](
-            "{} is using wl_surface::damage instead of the "
-            "recommended wl_surface::damage_buffer",
-            util::get_client_tag(client));
+    logger[log_level::warn, DOMAIN](
+        "{} is using wl_surface::damage instead of the "
+        "recommended wl_surface::damage_buffer",
+        util::get_client_tag(client));
 
-    mf_get_pending().damage_region.add(rect);
+    mf_get_pending().surface_damage.add(rect);
+}
+
+
+void
+surface::add_buffer_damage(wl_client *client, gfx::rect rect) noexcept
+{
+    mf_get_pending().buffer_damage.add(rect);
 }
 
 
@@ -161,14 +204,46 @@ surface::add_frame_callback(wl_client *client, std::uint32_t id) noexcept
 void
 surface::set_opaque_region(wl_client *client, region *region) noexcept
 {
-    mf_get_pending().opaque_region = region->get_region();
+    if (region != nullptr)
+        mf_get_pending().opaque_region = region->get_region();
+    else
+        mf_get_pending().opaque_region.clear();
 }
 
 
 void
 surface::set_input_region(wl_client *client, region *region) noexcept
 {
-    mf_get_pending().input_region = region->get_region();
+    if (region != nullptr)
+        mf_get_pending().input_region = region->get_region();
+    else
+    {
+        mf_get_pending().input_region.clear();
+        mf_get_pending().input_region.add(
+            { gfx::point { std::numeric_limits<std::int32_t>::min() },
+              gfx::point { std::numeric_limits<std::int32_t>::max() } });
+    }
+}
+
+
+void
+surface::set_buffer_transform(wl_client *client, int transform) noexcept
+{
+    m_pending->buffer_transform = transform;
+}
+
+
+void
+surface::set_buffer_scale(wl_client *client, std::int32_t scale) noexcept
+{
+    m_pending->buffer_scale = scale;
+}
+
+
+void
+surface::set_offset(wl_client *client, gfx::point offset) noexcept
+{
+    m_pending->offset = offset;
 }
 
 
@@ -182,7 +257,15 @@ surface::commit(wl_client *client) noexcept
 auto
 surface::mf_get_pending() noexcept -> state &
 {
-    if (!m_pending.has_value()) m_pending = m_current;
+    if (!m_pending.has_value())
+    {
+        m_pending = {};
+
+        m_pending->input_region.add(
+            { gfx::point { std::numeric_limits<std::int32_t>::min() },
+              gfx::point { std::numeric_limits<std::int32_t>::max() } });
+    }
+
     return *m_pending;
 }
 

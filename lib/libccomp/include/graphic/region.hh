@@ -10,10 +10,13 @@ namespace ccomp::gfx
         void add(gfx::rect rect) noexcept;
         void subtract(gfx::rect rect) noexcept;
 
+        void clear() noexcept;
+        [[nodiscard]] auto is(gfx::rect rect) noexcept -> bool;
+
     private:
         std::vector<gfx::rect> m_rects;
 
 
-        void merge_all() noexcept;
+        void mf_merge_all() noexcept;
     };
 }
