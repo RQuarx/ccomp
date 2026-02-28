@@ -2,6 +2,8 @@
 #include <thread>
 #include <utility>
 
+#include <wayland-server-core.h>
+
 #include "logger.hh"
 
 
@@ -61,6 +63,19 @@ namespace
                            "\033[1m{}\033[0m",
                            time, label, domain, message);
     }
+
+
+    void
+    wl_log_handler(const char *fmt, va_list args)
+    {
+        std::array<char, 1024> buf;
+        std::vsnprintf(buf.data(), buf.size(), fmt, args);
+
+        std::string_view msg { buf.data() };
+        if (msg.back() == '\n') msg.remove_suffix(1);
+
+        logger[log_level::debug, "wayland"]("{}", msg);
+    }
 }
 
 
@@ -69,6 +84,7 @@ logger::logger(log_level threshold_level) noexcept
       m_worker { [this](std::stop_token st)
                  { mf_process_queue(std::move(st)); } }
 {
+    wl_log_set_handler_server(wl_log_handler);
 }
 
 

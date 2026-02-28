@@ -1,0 +1,4 @@
+option('use-system-libccomp',
+    type:        'boolean',
+    value:       false,
+    description: 'compiles libccomp to a shared library when true, or compiles it to a static library when false',)

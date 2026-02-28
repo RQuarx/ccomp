@@ -62,3 +62,10 @@ region::get_impl() noexcept -> const region::impl_type *
 {
     return &impl;
 }
+
+
+auto
+region::get_region() const noexcept -> gfx::region
+{
+    return m_region;
+}

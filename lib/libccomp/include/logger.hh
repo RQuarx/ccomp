@@ -90,4 +90,6 @@ namespace ccomp
                       std::source_location source);
         };
     };
+
+    extern logger logger;
 }

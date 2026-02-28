@@ -10,8 +10,7 @@ deps = [ dependency('wayland-protocols'),
          dependency('wayland-server'),
          dependency('cairomm-1.16'),
          dependency('gl'),
-         dependency('entt', fallback: [ 'entt', 'entt_dep' ]),
-         dependency('logger', fallback: [ 'logger', 'logger_dep' ]) ]
+         dependency('entt', fallback: [ 'entt', 'entt_dep' ]) ]
 
 wl_mod = import('wayland')
 
@@ -25,8 +24,11 @@ xdg_proto = wl_mod.scan_xml(xml,
                             public: true,
                             server: true)
 
-subdir('src')
+subdir('app')
+subdir('lib')
+
 executable('ccomp', ccomp_src + xdg_proto,
-           include_directories: include_directories('include'),
+           include_directories: [ ccomp_include_dir, libccomp_include ],
            dependencies:        deps,
-           cpp_args: [ '-DWL_HIDE_DEPRECATED' ])
+           cpp_args:            [ '-DWL_HIDE_DEPRECATED' ],
+           link_with:           libccomp)

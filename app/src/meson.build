@@ -1,0 +1,1 @@
+ccomp_src = files('main.cc')

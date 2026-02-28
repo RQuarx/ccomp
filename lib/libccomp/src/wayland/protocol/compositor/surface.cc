@@ -43,11 +43,45 @@ namespace ccomp::wl::protocol
     }
 
 
+    static void
+    set_opaque_region(wl_client   *client,
+                      wl_resource *res,
+                      wl_resource *region) noexcept
+    {
+        util::get_user_data<surface>(res)->set_opaque_region(
+            client, util::get_user_data<class region>(region));
+    }
+
+
+    static void
+    set_input_region(wl_client   *client,
+                     wl_resource *res,
+                     wl_resource *region) noexcept
+    {
+        util::get_user_data<surface>(res)->set_input_region(
+            client, util::get_user_data<class region>(region));
+    }
+
+
+    static void
+    commit(wl_client *client, wl_resource *res) noexcept
+    {
+        util::get_user_data<surface>(res)->commit(client);
+    }
+
+
     static constexpr surface::impl_type impl {
-        .destroy = util::destroy_client_resource,
-        .attach  = attach,
-        .damage  = damage,
-        .frame   = frame,
+        .destroy              = util::destroy_client_resource,
+        .attach               = attach,
+        .damage               = damage,
+        .frame                = frame,
+        .set_opaque_region    = set_opaque_region,
+        .set_input_region     = set_input_region,
+        .commit               = commit,
+        .set_buffer_transform = nullptr,
+        .set_buffer_scale     = nullptr,
+        .damage_buffer        = nullptr,
+        .offset               = nullptr,
     };
 }
 
@@ -121,6 +155,27 @@ surface::add_frame_callback(wl_client *client, std::uint32_t id) noexcept
     }
 
     m_frame_callbacks.emplace_back(cb);
+}
+
+
+void
+surface::set_opaque_region(wl_client *client, region *region) noexcept
+{
+    mf_get_pending().opaque_region = region->get_region();
+}
+
+
+void
+surface::set_input_region(wl_client *client, region *region) noexcept
+{
+    mf_get_pending().input_region = region->get_region();
+}
+
+
+void
+surface::commit(wl_client *client) noexcept
+{
+    /* TODO */
 }
 
 

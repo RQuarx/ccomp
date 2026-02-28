@@ -29,9 +29,9 @@ namespace ccomp::wl::protocol
 
 
         void add(wl_client *client, gfx::rect rect) noexcept;
-
-
         void subtract(wl_client *client, gfx::rect rect) noexcept;
+
+        [[nodiscard]] auto get_region() const noexcept -> gfx::region;
 
     private:
         wl_resource *m_resource;
@@ -43,12 +43,16 @@ namespace ccomp::wl::protocol
     {
         struct state
         {
-            wl_buffer   *buffer { nullptr };
-            gfx::point   offset;
-            gfx::region  damage_region;
+            wl_buffer *buffer { nullptr };
+
+            gfx::region damage_region;
+            gfx::region opaque_region;
+            gfx::region input_region;
+
             gfx::size    buffer_size;
             std::int32_t buffer_scale { 1 };
             std::int32_t buffer_transform { WL_OUTPUT_TRANSFORM_NORMAL };
+            gfx::point   offset;
         };
 
     public:
@@ -77,6 +81,9 @@ namespace ccomp::wl::protocol
 
 
         void add_frame_callback(wl_client *client, std::uint32_t id) noexcept;
+        void set_opaque_region(wl_client *client, region *region) noexcept;
+        void set_input_region(wl_client *client, region *region) noexcept;
+        void commit(wl_client *client) noexcept;
 
     private:
         std::chrono::steady_clock::time_point m_start_time;
