@@ -1,0 +1,1 @@
+ccomp_wayland_protocol_shm_src = files('shm.cc', 'pool.cc')

@@ -3,6 +3,7 @@
 #include "logger.hh"
 #include "wayland/core/display.hh"
 #include "wayland/protocol/compositor.hh"
+#include "wayland/protocol/shm.hh"
 
 
 namespace ccomp
@@ -58,6 +59,7 @@ main(int argc, char **argv) noexcept -> int
     if (!sock_name) return 1;
 
     display->create_global<ccomp::wl::protocol::compositor>();
+    display->create_global<ccomp::wl::protocol::shared_memory>();
 
     display->run();
 }

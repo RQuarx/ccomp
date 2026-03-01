@@ -62,12 +62,10 @@ namespace ccomp::wl::protocol
         };
 
 
-        [[nodiscard]]
-        static auto get_impl() noexcept -> const impl_type *;
+        [[nodiscard]] static auto get_impl() noexcept -> const impl_type *;
 
 
         surface(wl_resource *resource) noexcept;
-        ~surface() override = default;
 
 
         void attach_buffer(wl_client   *client,

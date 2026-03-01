@@ -49,6 +49,14 @@ namespace ccomp::wl::core
                                                    *this, std::move(obj) });
         }
 
+
+        template <global_type T_Global>
+        auto
+        get_global() const -> global &
+        {
+            return *m_global.at(typeid(T_Global)).get();
+        }
+
     private:
         wl_display *m_display;
 
