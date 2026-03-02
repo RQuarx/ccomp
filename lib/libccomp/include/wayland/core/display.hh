@@ -7,6 +7,7 @@
 
 #include <wayland-server-core.h>
 
+#include "logger.hh"
 #include "wayland/core/event_loop.hh"
 #include "wayland/core/global.hh"
 
@@ -45,8 +46,16 @@ namespace ccomp::wl::core
             auto obj { std::make_unique<T_Global>(
                 std::forward<T_ConstructArgs>(args)...) };
 
-            m_global.emplace(typeid(T_Global), new (std::nothrow) global {
-                                                   *this, std::move(obj) });
+            try
+            {
+                m_global.emplace(typeid(T_Global),
+                                 new global { *this, std::move(obj) });
+            }
+            catch (const std::bad_alloc &e)
+            {
+                logger[log_level::error, "ccomp::wl::core::display"](
+                    "failed to allocate a new global object (low on memory?)");
+            }
         }
 
 

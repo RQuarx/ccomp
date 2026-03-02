@@ -21,8 +21,10 @@ namespace ccomp::wl::protocol
 
         if (res == nullptr)
         {
-            logger[log_level::error, "ccomp::wl::protocol::compositor"](
+            logger[log_level::error, DOMAIN](
                 "failed to create a wl_resource (low on memory?)");
+
+            wl_resource_post_no_memory(resource);
             wl_client_post_no_memory(client);
             return;
         }
@@ -48,8 +50,10 @@ namespace ccomp::wl::protocol
 
         if (data == nullptr)
         {
-            logger[log_level::error, "ccomp::wl::protocol::compositor"](
+            logger[log_level::error, DOMAIN](
                 "failed to create a compositor data (low on memory?)");
+
+            wl_resource_post_no_memory(resource);
             wl_client_post_no_memory(client);
             return;
         }
@@ -80,6 +84,8 @@ compositor::bind(wl_client    *client,
     {
         logger[log_level::error, DOMAIN](
             "failed to create a wl_resource (low on memory?)");
+
+        wl_resource_post_no_memory(resource);
         wl_client_post_no_memory(client);
         return;
     }

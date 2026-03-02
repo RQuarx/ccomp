@@ -3,7 +3,7 @@
 
 using ccomp::wl::protocol::region;
 
-#define DOMAIN "ccomp::wl::protocol::compositor"
+#define DOMAIN "ccomp::wl::protocol::compositor::region"
 
 
 namespace ccomp::wl::protocol

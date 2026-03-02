@@ -4,7 +4,6 @@
 #include <sys/stat.h>
 
 #include "libc.hh"
-#include "logger.hh"
 #include "wayland/core/display.hh"
 
 using ccomp::wl::core::display;

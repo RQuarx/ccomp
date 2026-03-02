@@ -6,7 +6,7 @@
 
 using ccomp::wl::protocol::surface;
 
-#define DOMAIN "ccomp::wl::protocol::compositor"
+#define DOMAIN "ccomp::wl::protocol::compositor::surface"
 
 
 namespace ccomp::wl::protocol
@@ -193,6 +193,8 @@ surface::add_frame_callback(wl_client *client, std::uint32_t id) noexcept
     {
         logger[log_level::fatal, DOMAIN](
             "failed to create a wl_resource (low on memory?)");
+
+        wl_resource_post_no_memory(m_resource);
         wl_client_post_no_memory(client);
         return;
     }

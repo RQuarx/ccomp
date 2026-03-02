@@ -12,23 +12,22 @@ deps = [ dependency('wayland-protocols'),
          dependency('gl'),
          dependency('entt', fallback: [ 'entt', 'entt_dep' ]) ]
 
+args = [ '-DWL_HIDE_DEPRECATED',
+         '-DCCOMP_VERSION="@0@"'.format(meson.project_version()),
+         '-DCCOMP_IS_RELEASE=@0@'.format(get_option('buildtype')
+                                             .contains('release')) ]
+
 wl_mod = import('wayland')
 
-# core_xml   = wl_mod.find_protocol('wayland')
-# core_proto = wl_mod.scan_xml(core_xml,
-#                              public: true,
-#                              server: true)
-
-xml       = wl_mod.find_protocol('xdg-shell')
-xdg_proto = wl_mod.scan_xml(xml,
-                            public: true,
-                            server: true)
+xdg_shell_protocol = wl_mod.scan_xml(wl_mod.find_protocol('xdg-shell'),
+                                     public: true,
+                                     server: true)
 
 subdir('app')
 subdir('lib')
 
-executable('ccomp', ccomp_src + xdg_proto,
+executable('ccomp', ccomp_src + xdg_shell_protocol,
            include_directories: [ ccomp_include_dir, libccomp_include ],
            dependencies:        deps,
-           cpp_args:            [ '-DWL_HIDE_DEPRECATED' ],
+           cpp_args:            args,
            link_with:           libccomp)
