@@ -37,7 +37,13 @@ namespace ccomp::wl::core
 
     template <typename T>
     concept impl_type = std::derived_from<T, impl_base> && requires {
-        { T::get_impl() } -> std::convertible_to<const typename T::impl_type *>;
+        { T::get_impl() } -> std::same_as<const typename T::impl_type *>;
+        { T::interface } -> either<interface_type, interface_type &>;
+    };
+
+
+    template <typename T>
+    concept has_interface = requires {
         { T::interface } -> either<interface_type, interface_type &>;
     };
 

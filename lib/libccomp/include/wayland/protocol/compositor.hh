@@ -125,4 +125,8 @@ namespace ccomp::wl::protocol
         std::vector<std::unique_ptr<surface>> m_surfaces;
         std::vector<std::unique_ptr<region>>  m_regions;
     };
+
+    static_assert(core::impl_type<region>);
+    static_assert(core::impl_type<surface>);
+    static_assert(core::global_type<compositor>);
 }

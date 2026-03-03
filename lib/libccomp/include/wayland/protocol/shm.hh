@@ -62,4 +62,7 @@ namespace ccomp::wl::protocol
         std::shared_ptr<memory_mapping> m_mapping;
         int                             m_fd;
     };
+
+    static_assert(core::impl_type<shm_pool>);
+    static_assert(core::global_type<shm>);
 }
