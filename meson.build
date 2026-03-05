@@ -10,6 +10,7 @@ deps = [ dependency('wayland-protocols'),
          dependency('wayland-server'),
          dependency('cairomm-1.16'),
          dependency('gl'),
+         dependency('libdrm'),
          dependency('entt', fallback: [ 'entt', 'entt_dep' ]) ]
 
 args = [ '-DWL_HIDE_DEPRECATED',

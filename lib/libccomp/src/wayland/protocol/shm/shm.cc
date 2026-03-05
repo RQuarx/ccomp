@@ -53,6 +53,14 @@ shm::bind(wl_client    *client,
 }
 
 
+auto
+shm::get_supported_formats() const noexcept
+    -> const std::vector<std::uint32_t> &
+{
+    return m_formats;
+}
+
+
 void
 shm::create_pool(wl_client    *client,
                  std::uint32_t id,
@@ -92,7 +100,7 @@ shm::create_pool(wl_client    *client,
 
     try
     {
-        pool = new shm_pool { res, fd, size };
+        pool = new shm_pool { res, this, fd, size };
     }
     catch (const std::runtime_error &e)
     {

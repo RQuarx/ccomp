@@ -1,1 +1,1 @@
-ccomp_graphic_src = files('region.cc')
+ccomp_graphic_src = files('pixel_format.cc', 'region.cc')

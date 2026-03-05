@@ -59,7 +59,8 @@ main(int argc, char **argv) noexcept -> int
     if (!sock_name) return 1;
 
     display->create_global<ccomp::wl::protocol::compositor>();
-    display->create_global<ccomp::wl::protocol::shared_memory>();
+    display->create_global<ccomp::wl::protocol::shm>(
+        std::vector<std::uint32_t> { WL_SHM_FORMAT_XRGB8888 });
 
     display->run();
 }

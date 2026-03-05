@@ -19,14 +19,13 @@ namespace ccomp::wl::protocol
         data_ptr_access(buffer       *buffer,
                         void         *data,
                         std::uint32_t format,
-                        std::size_t   stride);
+                        std::size_t   stride) noexcept;
 
         data_ptr_access(const data_ptr_access &)                     = delete;
         auto operator=(const data_ptr_access &) -> data_ptr_access & = delete;
 
-        data_ptr_access(data_ptr_access &&dpa) noexcept = delete;
-        auto operator=(data_ptr_access &&dpa) noexcept
-            -> data_ptr_access & = delete;
+        data_ptr_access(data_ptr_access &&dpa) noexcept;
+        auto operator=(data_ptr_access &&dpa) noexcept -> data_ptr_access &;
 
         ~data_ptr_access();
 
@@ -50,10 +49,12 @@ namespace ccomp::wl::protocol
         auto (*get_shm)(buffer *buffer) noexcept
             -> std::expected<struct shm_buffer_data, std::string>;
 
-        auto (*begin_data_ptr_access)(buffer *buffer, uint32_t flags) noexcept
+        auto (*begin_data_ptr_access)(buffer       *buffer,
+                                      std::uint32_t flags) noexcept
             -> std::expected<data_ptr_access, std::string>;
 
-        void (*end_data_ptr_access)(buffer *buffer) noexcept;
+        void (*end_data_ptr_access)(buffer          *buffer,
+                                    data_ptr_access &data) noexcept;
     };
 
 
@@ -69,7 +70,7 @@ namespace ccomp::wl::protocol
         [[nodiscard]] static auto get_impl() noexcept -> const impl_type *;
 
 
-        buffer(wl_resource *resource, buffer_interface &&interface);
+        buffer(wl_resource *resource, buffer_interface &interface);
 
         buffer(const buffer &)                     = delete;
         auto operator=(const buffer &) -> buffer & = delete;
@@ -81,11 +82,11 @@ namespace ccomp::wl::protocol
             -> std::expected<struct shm_buffer_data, std::string>;
 
         [[nodiscard]]
-        auto begin_data_access() noexcept
+        auto begin_data_access(std::uint32_t flags) noexcept
             -> std::expected<data_ptr_access, std::string>;
 
 
-        void end_data_access(data_ptr_access &&data_access) noexcept;
+        void end_data_access(data_ptr_access &data_access) noexcept;
 
     private:
         wl_resource     *m_resource;
