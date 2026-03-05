@@ -2,6 +2,3 @@
 !*.wrap
 !.gitignore
 !update-wraps.sh
-
-!logger/*
-!logger

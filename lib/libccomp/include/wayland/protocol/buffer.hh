@@ -70,7 +70,7 @@ namespace ccomp::wl::protocol
         [[nodiscard]] static auto get_impl() noexcept -> const impl_type *;
 
 
-        buffer(wl_resource *resource, buffer_interface &interface);
+        buffer(wl_resource *resource, const buffer_interface &interface);
 
         buffer(const buffer &)                     = delete;
         auto operator=(const buffer &) -> buffer & = delete;

@@ -26,7 +26,7 @@ buffer::get_impl() noexcept -> const impl_type *
 }
 
 
-buffer::buffer(wl_resource *resource, buffer_interface &interface)
+buffer::buffer(wl_resource *resource, const buffer_interface &interface)
     : m_resource { resource }, m_interface { interface }
 {
 }

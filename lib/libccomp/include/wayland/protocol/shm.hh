@@ -4,6 +4,7 @@
 #include <wayland-server-protocol.h>
 
 #include "wayland/core/global.hh"
+#include "wayland/protocol/buffer.hh"
 
 
 namespace ccomp::wl::protocol
@@ -71,8 +72,8 @@ namespace ccomp::wl::protocol
                    shm_buffer_data data) noexcept;
 
     private:
-        class buffer *m_base;
-        wl_resource  *m_resource;
+        buffer       m_base;
+        wl_resource *m_resource;
 
         class shm_pool *m_pool;
 
